@@ -7,9 +7,11 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
+	"github.com/mattn/go-isatty"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
@@ -41,12 +43,14 @@ Usage:
 	}
 	flag.Parse()
 
-	if len(flag.Args()) == 0 {
-		flag.Usage()
-		checkError(fmt.Errorf("Error: no content given"))
+	content := ""
+	if !isatty.IsTerminal(os.Stdin.Fd()) {
+		in, err := ioutil.ReadAll(os.Stdin)
+		checkError(err)
+		content = string(in)
+	} else {
+		content = strings.Join(flag.Args(), " ")
 	}
-
-	content := strings.Join(flag.Args(), " ")
 
 	var err error
 	var q *qrcode.QRCode
